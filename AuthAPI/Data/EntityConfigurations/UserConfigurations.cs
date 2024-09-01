@@ -20,9 +20,11 @@ namespace AuthAPI.Data.EntityConfigurations
                 .HasMaxLength(255)
                 .IsRequired();
 
-            builder.Property(u => u.Role)
-                .HasMaxLength(50)
-                .IsRequired();
+            builder.HasOne(u => u.Role)
+                .WithMany()
+                .HasForeignKey(u => u.RoleId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }
