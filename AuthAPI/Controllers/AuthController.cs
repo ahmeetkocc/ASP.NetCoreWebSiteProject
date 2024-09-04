@@ -1,7 +1,15 @@
 ﻿using AuthAPI.Data;
+using AuthAPI.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
+using System.Net;
+using System.Security.Claims;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace AuthAPI.Controllers
 {
@@ -68,6 +76,70 @@ namespace AuthAPI.Controllers
             _appDbContext.SaveChanges();
 
             return Ok();
+        }
+
+        public static byte[] HashPassword(string password)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                return sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+            }
+        }
+        private async Task SendResetPasswordEmailAsync(User user)
+        {
+            const string host = "smtp.gmail.com";
+            const int port = 587;
+            const string from = "denemebackend105@gmail.com";
+            const string password = "boyc tvfg jkgp thpk";
+
+            using SmtpClient client = new(host, port)
+            {
+                Credentials = new NetworkCredential(from, password),
+                EnableSsl = true
+            };
+
+            MailMessage mail = new()
+            {
+                From = new MailAddress(from),
+                Subject = "Şifre Sıfırlama",
+                Body = $"Merhaba {user.Username}, <br> Şifrenizi sıfırlamak için <a href='https://localhost:7239/renew-password/verificationCode={user.ResetPasswordToken}'>tıklayınız</a>.",
+                IsBodyHtml = true,
+            };
+
+            mail.To.Add(user.Email);
+
+            await client.SendMailAsync(mail);
+        }
+        private string GenerateJwtToken(User user)
+        {
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Sid, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role.Name)
+            };
+
+            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+            var jwt = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                notBefore: DateTime.UtcNow,
+                expires: DateTime.UtcNow.AddMinutes(_configuration.GetValue<int>("Jwt:ExpireMinutes")),
+                signingCredentials: signingCredentials
+            );
+
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+            return tokenString;
+        }
+
+        private string GenerateRefreshToken()
+        {
+            return Guid.NewGuid().ToString();
         }
     }
 }
