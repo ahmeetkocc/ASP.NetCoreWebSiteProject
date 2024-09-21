@@ -1,0 +1,36 @@
+name: Commit Message Checker
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-commit-messages:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kod Deposu'nu Çek
+        uses: actions/checkout@v3
+
+      - name: Commit Mesajlarını Al
+        id: commits
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          COMMITS=$(git log origin/${{ github.event.pull_request.base.ref }}..HEAD --pretty=format:"%s")
+          echo "::set-output name=commits::$COMMITS"
+
+      - name: Commit Mesajlarını Kontrol Et
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+          # Branc adını kök dal olarak almak için gerekirse:
+          # BRANCH_NAME=$(echo "${BRANCH_NAME}" | sed 's#/#_#g')
+          
+          IFS=$'\n' read -rd '' -a commit_array <<< "${{ steps.commits.outputs.commits }}"
+          for commit in "${commit_array[@]}"
+          do
+            if [[ ! "$commit" =~ ^\[$BRANCH_NAME\] ]]; then
+              echo "Commit mesajı [$BRANCH_NAME] ile başlamıyor: $commit"
+              exit 1
+            fi
+          done
+          echo "Tüm commit mesajları doğru formatta."
