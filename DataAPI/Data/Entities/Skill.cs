@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DataAPI.Entities;
+namespace DataAPI.Data.Entities;
 
 public class Skill
 {

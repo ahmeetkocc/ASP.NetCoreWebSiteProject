@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace DataAPI.Entities;
+namespace DataAPI.Data.Entities;
 
 public class AboutMe
 {
