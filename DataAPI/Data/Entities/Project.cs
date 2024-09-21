@@ -1,4 +1,4 @@
-﻿namespace DataAPI.Entities;
+﻿namespace DataAPI.Data.Entities;
 
 public class Project
 {
