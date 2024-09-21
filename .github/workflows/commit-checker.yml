@@ -9,22 +9,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Kod Deposu'nu Çek
+      # 1. Kod deposunu çekmek (tüm dalları ve geçmişi dahil etmek için fetch-depth: 0 kullanılır)
+      - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Tüm geçmişi ve dalları çek
 
-      - name: Commit Mesajlarını Al
+      # 2. Commit mesajlarını almak
+      - name: Get commit messages
         id: commits
         run: |
-          # PR'ın temel dalından (base branch) itibaren commitleri al
-          COMMITS=$(git log origin/${{ github.event.pull_request.base.ref }}..HEAD --pretty=format:"%s")
-          echo "::set-output name=commits::$COMMITS"
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          echo "Base branch is $BASE_BRANCH"
+          
+          # PR'ın temel dalını fetch et
+          git fetch origin "$BASE_BRANCH"
+          
+          # Commit mesajlarını al
+          COMMITS=$(git log origin/"$BASE_BRANCH"..HEAD --pretty=format:"%s")
+          
+          # GITHUB_OUTPUT kullanarak çıktıyı ayarla
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Commit Mesajlarını Kontrol Et
+      # 3. Commit mesajlarını kontrol etmek
+      - name: Check commit messages
         run: |
           IFS=$'\n' read -rd '' -a commit_array <<< "${{ steps.commits.outputs.commits }}"
           for commit in "${commit_array[@]}"
           do
-            # Commit mesajının [yazı] ile başlayıp başlamadığını kontrol et
             if [[ ! "$commit" =~ ^\[[^\]]+\] ]]; then
               echo "Hata: Commit mesajı [yazı] ile başlamalı. Problemli commit: '$commit'"
               exit 1
