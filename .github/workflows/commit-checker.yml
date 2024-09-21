@@ -15,21 +15,18 @@ jobs:
       - name: Commit Mesajlarını Al
         id: commits
         run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }}
+          # PR'ın temel dalından (base branch) itibaren commitleri al
           COMMITS=$(git log origin/${{ github.event.pull_request.base.ref }}..HEAD --pretty=format:"%s")
           echo "::set-output name=commits::$COMMITS"
 
       - name: Commit Mesajlarını Kontrol Et
         run: |
-          BRANCH_NAME="${{ github.head_ref }}"
-          # Branc adını kök dal olarak almak için gerekirse:
-          # BRANCH_NAME=$(echo "${BRANCH_NAME}" | sed 's#/#_#g')
-          
           IFS=$'\n' read -rd '' -a commit_array <<< "${{ steps.commits.outputs.commits }}"
           for commit in "${commit_array[@]}"
           do
-            if [[ ! "$commit" =~ ^\[$BRANCH_NAME\] ]]; then
-              echo "Commit mesajı [$BRANCH_NAME] ile başlamıyor: $commit"
+            # Commit mesajının [yazı] ile başlayıp başlamadığını kontrol et
+            if [[ ! "$commit" =~ ^\[[^\]]+\] ]]; then
+              echo "Hata: Commit mesajı [yazı] ile başlamalı. Problemli commit: '$commit'"
               exit 1
             fi
           done
