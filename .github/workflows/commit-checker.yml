@@ -9,16 +9,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Kod Deposunu Çekme (Tüm Dalları ve Geçmişi Dahil)
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Tüm geçmişi ve dalları çek
 
+      # 2. Commit Mesajlarını Alma
       - name: Get commit messages
         id: commits
         run: |
+          # PR'ın temel (target) dalını al
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           echo "Base branch is $BASE_BRANCH"
+
+          # PR'ın kaynak (source) dalını al
+          SOURCE_BRANCH="${{ github.head_ref }}"
+          echo "Source branch is $SOURCE_BRANCH"
 
           # PR'ın temel dalını fetch et
           git fetch origin "$BASE_BRANCH"
@@ -31,14 +38,27 @@ jobs:
           echo "$COMMITS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      # 3. Commit Mesajlarını Kontrol Etme
       - name: Check commit messages
         run: |
+          # Commit mesajlarını al ve bir diziye dönüştür
           IFS=$'\n' read -rd '' -a commit_array <<< "${{ steps.commits.outputs.commits }}"
+
+          # PR'ın kaynak dal adını kullanarak beklenen formatı oluştur
+          EXPECTED_PREFIX="[$(echo "${{ github.head_ref }}" | sed 's#/#_#g')]"
+
+          echo "Expected commit prefix: '$EXPECTED_PREFIX'"
+
+          # Her bir commit mesajını kontrol et
           for commit in "${commit_array[@]}"
           do
-            if [[ ! "$commit" =~ ^\[[^\]]+\] ]]; then
-              echo "Hata: Commit mesajı [yazı] ile başlamalı. Problemli commit: '$commit'"
+            echo "Kontrol edilen commit: '$commit'"
+
+            # Beklenen prefix ile başlamıyor ise hata ver
+            if [[ ! "$commit" =~ ^\[$(echo "${{ github.head_ref }}" | sed 's#/#_#g')\] ]]; then
+              echo "Hata: Commit mesajı '$EXPECTED_PREFIX' ile başlamalı. Problemli commit: '$commit'"
               exit 1
             fi
           done
+
           echo "Tüm commit mesajları doğru formatta."
