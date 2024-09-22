@@ -1,74 +1,34 @@
-name: Commit Message Checker
+name: Commit Message Check
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, edited, synchronize]
 
 jobs:
-  check-commit-messages:
+  commit-message-check:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Kod Deposunu Çekme (Tüm Dalları ve Geçmişi Dahil)
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Tüm geçmişi ve dalları çek
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      # 2. Commit Mesajlarını Alma
-      - name: Get commit messages
-        id: commits
-        run: |
-          # PR'ın temel (target) dalını al
-          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-          echo "Base branch is $BASE_BRANCH"
+    - name: Get commit messages
+      run: |
+        # Get branch name from the pull request
+        BRANCH_NAME=$(echo "${{ github.head_ref }}" | sed 's#/#_#g')
+        EXPECTED_PREFIX="[$BRANCH_NAME]"
 
-          # PR'ın kaynak (source) dalını al
-          SOURCE_BRANCH="${{ github.head_ref }}"
-          echo "Source branch is $SOURCE_BRANCH"
+        # Get commit messages from the pull request
+        COMMITS=$(git log --format=%s --no-merges HEAD~20..HEAD)
+        
+        # Check if each commit message starts with the expected prefix
+        for COMMIT_MSG in $COMMITS; do
+          if [[ ! "$COMMIT_MSG" =~ ^\[$BRANCH_NAME\] ]]; then
+            echo "Hata: Commit mesajı '$COMMIT_MSG' beklenen formatta değil! (Beklenen prefix: '$EXPECTED_PREFIX')"
+            exit 1
+          fi
+        done
 
-          # PR'ın temel dalını fetch et
-          git fetch origin "$BASE_BRANCH"
-
-          # Merge commit'leri hariç tutarak commit mesajlarını al
-          COMMITS=$(git log origin/"$BASE_BRANCH"..HEAD --no-merges --pretty=format:"%s")
-
-          # GITHUB_OUTPUT kullanarak commit mesajlarını çıktı olarak kaydet
-          echo "commits<<EOF" >> $GITHUB_OUTPUT
-          echo "$COMMITS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      # 3. Commit Mesajlarını Kontrol Etme
-      - name: Check commit messages
-        run: |
-          # Commit mesajlarını git log üzerinden al
-          IFS=$'\n' read -rd '' -a commit_array <<< "$(git log --pretty=format:'%s')"
-          
-          # PR'ın kaynak dal adını kullanarak beklenen formatı oluştur
-          SOURCE_BRANCH=$(echo "DataAPI" | sed 's#/#_#g')
-          EXPECTED_PREFIX="[$SOURCE_BRANCH]"
-          
-          # Debug amaçlı olarak beklenen prefix'i, branch adını ve commit mesajlarını yazdır
-          echo "Expected commit prefix: '$EXPECTED_PREFIX'"
-          echo "Source branch: '$SOURCE_BRANCH'"
-          echo "Commit messages array: ${commit_array[@]}"
-          
-          # Her bir commit mesajını kontrol et
-          for commit in "${commit_array[@]}"
-          do
-            echo "Kontrol edilen commit: '$commit'"
-          
-            # Boş commit mesajlarını kontrol et (Boş mesaj varsa hata olabilir)
-            if [ -z "$commit" ]; then
-              echo "Hata: Commit mesajı boş!"
-              exit 1
-            fi
-          
-            # Beklenen prefix ile başlamıyor ise hata ver
-            if [[ ! "$commit" =~ ^\[$SOURCE_BRANCH\] ]]; then
-              echo "Hata: Commit mesajı '$EXPECTED_PREFIX' ile başlamalı. Problemli commit: '$commit'"
-              exit 1
-            fi
-          done
-          
-          echo "Tüm commit mesajları doğru formatta."
+    - name: Success message
+      if: success()
+      run: echo "Tüm commit mesajları doğru formatta."
