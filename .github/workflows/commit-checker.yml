@@ -65,7 +65,7 @@ jobs:
             fi
 
             # Beklenen prefix ile başlamıyor ise hata ver
-            if [[ ! "$commit" =~ ^"$EXPECTED_PREFIX" ]]; then
+            if [[ ! "$commit" =~ ^\[$SOURCE_BRANCH\] ]]; then
               echo "Hata: Commit mesajı '$EXPECTED_PREFIX' ile başlamalı. Problemli commit: '$commit'"
               exit 1
             fi
