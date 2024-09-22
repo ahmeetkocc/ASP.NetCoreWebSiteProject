@@ -56,6 +56,12 @@ jobs:
           do
             echo "Kontrol edilen commit: '$commit'"
 
+            # Boş commit mesajlarını kontrol et (Boş mesaj varsa hata olabilir)
+            if [ -z "$commit" ]; then
+              echo "Hata: Commit mesajı boş!"
+              exit 1
+            fi
+
             # Beklenen prefix ile başlamıyor ise hata ver
             if [[ ! "$commit" =~ ^\[$(echo "${{ github.head_ref }}" | sed 's#/#_#g')\] ]]; then
               echo "Hata: Commit mesajı '$EXPECTED_PREFIX' ile başlamalı. Problemli commit: '$commit'"
