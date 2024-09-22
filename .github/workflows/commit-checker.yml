@@ -45,10 +45,12 @@ jobs:
           IFS=$'\n' read -rd '' -a commit_array <<< "${{ steps.commits.outputs.commits }}"
 
           # PR'ın kaynak dal adını kullanarak beklenen formatı oluştur
-          EXPECTED_PREFIX="[$(echo "${{ github.head_ref }}" | sed 's#/#_#g')]"
+          SOURCE_BRANCH=$(echo "${{ github.head_ref }}" | sed 's#/#_#g')
+          EXPECTED_PREFIX="[$SOURCE_BRANCH]"
 
-          # Debug amaçlı olarak beklenen prefix'i ve commit mesajlarını yazdır
+          # Debug amaçlı olarak beklenen prefix'i, branch adını ve commit mesajlarını yazdır
           echo "Expected commit prefix: '$EXPECTED_PREFIX'"
+          echo "Source branch: '$SOURCE_BRANCH'"
           echo "Commit messages array: ${commit_array[@]}"
 
           # Her bir commit mesajını kontrol et
@@ -63,7 +65,7 @@ jobs:
             fi
 
             # Beklenen prefix ile başlamıyor ise hata ver
-            if [[ ! "$commit" =~ ^\[$(echo "${{ github.head_ref }}" | sed 's#/#_#g')\] ]]; then
+            if [[ ! "$commit" =~ ^"$EXPECTED_PREFIX" ]]; then
               echo "Hata: Commit mesajı '$EXPECTED_PREFIX' ile başlamalı. Problemli commit: '$commit'"
               exit 1
             fi
