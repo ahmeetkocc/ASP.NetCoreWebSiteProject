@@ -14,15 +14,17 @@ jobs:
       with:
         fetch-depth: 0  # Tüm commit geçmişini indir
 
-    - name: Get branch name from the pull request
+    - name: Get commit messages from the pull request
       run: |
         # Get branch name from the pull request
         BRANCH_NAME=$(echo "${{ github.head_ref }}" | sed 's#/#_#g')
         EXPECTED_PREFIX="[$BRANCH_NAME]"
 
-        # Get commit messages from the pull request
-        COMMITS=$(git log --format=%s --no-merges HEAD~20..HEAD)
-        
+        # Get commit messages using GitHub API
+        COMMITS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits" \
+          | jq -r '.[].commit.message')
+
         # Check if each commit message starts with the expected prefix
         for COMMIT_MSG in $COMMITS; do
           if [[ ! "$COMMIT_MSG" =~ ^\[$BRANCH_NAME\] ]]; then
