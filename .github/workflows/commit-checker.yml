@@ -33,7 +33,7 @@ jobs:
           # Merge commit'leri hariç tutarak commit mesajlarını al
           COMMITS=$(git log origin/"$BASE_BRANCH"..HEAD --no-merges --pretty=format:"%s")
 
-          # GITHUB_OUTPUT kullanarak çıktıyı ayarla
+          # GITHUB_OUTPUT kullanarak commit mesajlarını çıktı olarak kaydet
           echo "commits<<EOF" >> $GITHUB_OUTPUT
           echo "$COMMITS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -47,7 +47,9 @@ jobs:
           # PR'ın kaynak dal adını kullanarak beklenen formatı oluştur
           EXPECTED_PREFIX="[$(echo "${{ github.head_ref }}" | sed 's#/#_#g')]"
 
+          # Debug amaçlı olarak beklenen prefix'i ve commit mesajlarını yazdır
           echo "Expected commit prefix: '$EXPECTED_PREFIX'"
+          echo "Commit messages array: ${commit_array[@]}"
 
           # Her bir commit mesajını kontrol et
           for commit in "${commit_array[@]}"
