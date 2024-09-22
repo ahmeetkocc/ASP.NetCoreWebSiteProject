@@ -11,8 +11,10 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Tüm commit geçmişini indir
 
-    - name: Get commit messages
+    - name: Get branch name from the pull request
       run: |
         # Get branch name from the pull request
         BRANCH_NAME=$(echo "${{ github.head_ref }}" | sed 's#/#_#g')
