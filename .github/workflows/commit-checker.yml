@@ -25,13 +25,15 @@ jobs:
           "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits" \
           | jq -r '.[].commit.message')
 
-        # Check if each commit message starts with the expected prefix
-        for COMMIT_MSG in $COMMITS; do
+        # Iterate over commit messages
+        while IFS= read -r COMMIT_MSG; do
+          COMMIT_MSG=$(echo "$COMMIT_MSG" | xargs)  # Trim leading/trailing spaces
+
           if [[ ! "$COMMIT_MSG" =~ ^\[$BRANCH_NAME\] ]]; then
             echo "Hata: Commit mesajı '$COMMIT_MSG' beklenen formatta değil! (Beklenen prefix: '$EXPECTED_PREFIX')"
             exit 1
           fi
-        done
+        done <<< "$COMMITS"
 
     - name: Success message
       if: success()
