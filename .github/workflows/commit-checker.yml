@@ -41,34 +41,34 @@ jobs:
       # 3. Commit Mesajlarını Kontrol Etme
       - name: Check commit messages
         run: |
-          # Commit mesajlarını al ve bir diziye dönüştür
-          IFS=$'\n' read -rd '' -a commit_array <<< "${{ steps.commits.outputs.commits }}"
-
+          # Commit mesajlarını git log üzerinden al
+          IFS=$'\n' read -rd '' -a commit_array <<< "$(git log --pretty=format:'%s')"
+          
           # PR'ın kaynak dal adını kullanarak beklenen formatı oluştur
-          SOURCE_BRANCH=$(echo "${{ github.head_ref }}" | sed 's#/#_#g')
+          SOURCE_BRANCH=$(echo "DataAPI" | sed 's#/#_#g')
           EXPECTED_PREFIX="[$SOURCE_BRANCH]"
-
+          
           # Debug amaçlı olarak beklenen prefix'i, branch adını ve commit mesajlarını yazdır
           echo "Expected commit prefix: '$EXPECTED_PREFIX'"
           echo "Source branch: '$SOURCE_BRANCH'"
           echo "Commit messages array: ${commit_array[@]}"
-
+          
           # Her bir commit mesajını kontrol et
           for commit in "${commit_array[@]}"
           do
             echo "Kontrol edilen commit: '$commit'"
-
+          
             # Boş commit mesajlarını kontrol et (Boş mesaj varsa hata olabilir)
             if [ -z "$commit" ]; then
               echo "Hata: Commit mesajı boş!"
               exit 1
             fi
-
+          
             # Beklenen prefix ile başlamıyor ise hata ver
             if [[ ! "$commit" =~ ^\[$SOURCE_BRANCH\] ]]; then
               echo "Hata: Commit mesajı '$EXPECTED_PREFIX' ile başlamalı. Problemli commit: '$commit'"
               exit 1
             fi
           done
-
+          
           echo "Tüm commit mesajları doğru formatta."
