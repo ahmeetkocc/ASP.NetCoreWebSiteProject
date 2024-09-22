@@ -9,31 +9,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Kod deposunu çekmek (tüm dalları ve geçmişi dahil etmek için fetch-depth: 0 kullanılır)
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Tüm geçmişi ve dalları çek
 
-      # 2. Commit mesajlarını almak
       - name: Get commit messages
         id: commits
         run: |
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           echo "Base branch is $BASE_BRANCH"
-          
+
           # PR'ın temel dalını fetch et
           git fetch origin "$BASE_BRANCH"
-          
-          # Commit mesajlarını al
-          COMMITS=$(git log origin/"$BASE_BRANCH"..HEAD --pretty=format:"%s")
-          
+
+          # Merge commit'leri hariç tutarak commit mesajlarını al
+          COMMITS=$(git log origin/"$BASE_BRANCH"..HEAD --no-merges --pretty=format:"%s")
+
           # GITHUB_OUTPUT kullanarak çıktıyı ayarla
           echo "commits<<EOF" >> $GITHUB_OUTPUT
           echo "$COMMITS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # 3. Commit mesajlarını kontrol etmek
       - name: Check commit messages
         run: |
           IFS=$'\n' read -rd '' -a commit_array <<< "${{ steps.commits.outputs.commits }}"
