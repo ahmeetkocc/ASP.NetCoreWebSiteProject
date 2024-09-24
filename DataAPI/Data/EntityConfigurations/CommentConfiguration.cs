@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
+using DataAPI.Data.Entities;
 
 namespace DataAPI.Data.EntityConfigurations
 {
@@ -36,11 +37,11 @@ namespace DataAPI.Data.EntityConfigurations
                    .HasForeignKey(c => c.BlogPostId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(e => e.User)
-                .WithMany()
-                .IsRequired()
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+            //builder.HasOne(e => e.User)
+            //    .WithMany()
+            //    .IsRequired()
+            //    .HasForeignKey(e => e.UserId)
+            //    .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }
