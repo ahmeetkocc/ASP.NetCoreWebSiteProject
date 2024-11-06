@@ -10,136 +10,106 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Security.Cryptography;
+using AuthAPI.Dtos;
+using AuthAPI.Services.Interfaces;
 
-namespace AuthAPI.Controllers
+namespace AuthAPI.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class AuthController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class AuthController : ControllerBase
-    {
-        private readonly AppDbContext _appDbContext;
-        private readonly IConfiguration _configuration;
+	private readonly IAuthService _authService;
 
-        public AuthController(AppDbContext appDbContext, IConfiguration configuration)
-        {
-            _appDbContext = appDbContext;
-            _configuration = configuration;
-        }
+	public AuthController(IAuthService authService)
+	{
+		_authService = authService;
+	}
 
-        //GetUser
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetUser([FromRoute] int userId)
-        {
-            var user = _appDbContext.Users.Find(userId);
+	[HttpGet("user/{userId}")]
+	public async Task<IActionResult> GetUser([FromRoute] int userId)
+	{
+		var user = await _authService.GetUserByIdAsync(userId);
+		if (user == null)
+			return BadRequest("Kullanıcı bulunamadı.");
 
-            if (user is null)
-                return BadRequest("Kullanıcı bulunamadi");
+		return Ok(user);
+	}
 
-            return Ok(user);
-        }
+	[HttpGet("userList")]
+	public async Task<IActionResult> GetUsers()
+	{
+		var userList = await _authService.GetAllUsersAsync();
+		return Ok(userList);
+	}
 
-        //GetUserList
-        [HttpGet("UserList")]
-        public IActionResult GetUsers()
-        {
-            var userList = _appDbContext.Users
-                .Include(u => u.Role)
-                .Include(u => u.RefreshTokens)
-                .Select(u => new {
-                    u.Id,
-                    u.Username,
-                    u.Email,
-                    RoleName = u.Role.Name,
-                    u.RoleId,
-                    RefreshTokens = u.RefreshTokens.Select(x => x.Token)
-                })
-                .ToList();
-            return Ok(userList);
-        }
+	[HttpPut("updateUser")]
+	public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDto updateDto)
+	{
+		var tokenResponse = await _authService.UpdateUserAsync(updateDto);
+		if (tokenResponse == null)
+			return BadRequest("Kullanıcı bulunamadı.");
 
-        //DeleteUser
-        [HttpPost("delete/{userId}")]
-        public IActionResult Delete([FromRoute] int userId)
-        {
-            var user = _appDbContext.Users
-                .Include(u => u.Role)
-                .Include(u => u.RefreshTokens)
-                .SingleOrDefault(u => u.Id == userId);
+		return Ok(tokenResponse);
+	}
 
-            if (user is null)
-                return NoContent();
+	[HttpDelete("delete/{userId}")]
+	public async Task<IActionResult> DeleteUser([FromRoute] int userId)
+	{
+		var result = await _authService.DeleteUserAsync(userId);
+		if (!result)
+			return NoContent();
 
-            //İlişkili yerlerin nasıl silineceği ile ilgili hata alındı.
-            _appDbContext.RefreshTokens.RemoveRange(user.RefreshTokens);
+		return Ok();
+	}
 
-            _appDbContext.Users.Remove(user);
-            _appDbContext.SaveChanges();
+	[HttpPost("login")]
+	public async Task<IActionResult> Login([FromBody] LoginDto dto)
+	{
+		var tokenResponse = await _authService.LoginAsync(dto);
+		if (tokenResponse == null)
+			return BadRequest("Kullanıcı adı veya şifre yanlış.");
 
-            return Ok();
-        }
+		return Ok(tokenResponse);
+	}
 
-        public static byte[] HashPassword(string password)
-        {
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                return sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            }
-        }
-        private async Task SendResetPasswordEmailAsync(User user)
-        {
-            const string host = "smtp.gmail.com";
-            const int port = 587;
-            const string from = "denemebackend105@gmail.com";
-            const string password = "boyc tvfg jkgp thpk";
+	[HttpPost("register")]
+	public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+	{
+		var result = await _authService.RegisterAsync(registerDto);
+		if (!result)
+			return BadRequest("Bu email ile bir kullanıcı zaten mevcut.");
 
-            using SmtpClient client = new(host, port)
-            {
-                Credentials = new NetworkCredential(from, password),
-                EnableSsl = true
-            };
+		return Ok();
+	}
 
-            MailMessage mail = new()
-            {
-                From = new MailAddress(from),
-                Subject = "Şifre Sıfırlama",
-                Body = $"Merhaba {user.Username}, <br> Şifrenizi sıfırlamak için <a href='https://localhost:7239/renew-password/verificationCode={user.ResetPasswordToken}'>tıklayınız</a>.",
-                IsBodyHtml = true,
-            };
+	[HttpGet("refresh")]
+	public async Task<IActionResult> Refresh([FromQuery] string token)
+	{
+		var tokenResponse = await _authService.RefreshTokenAsync(token);
+		if (tokenResponse == null)
+			return Unauthorized("Geçersiz refresh token");
 
-            mail.To.Add(user.Email);
+		return Ok(tokenResponse);
+	}
 
-            await client.SendMailAsync(mail);
-        }
-        private string GenerateJwtToken(User user)
-        {
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.Sid, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role.Name)
-            };
+	[HttpPost("forgot-password")]
+	public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto dto)
+	{
+		var result = await _authService.ForgotPasswordAsync(dto);
+		if (!result)
+			return BadRequest("Kullanıcı bulunamadı");
 
-            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-            var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+		return Ok();
+	}
 
-            var jwt = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddMinutes(_configuration.GetValue<int>("Jwt:ExpireMinutes")),
-                signingCredentials: signingCredentials
-            );
+	[HttpPost("renew-password")]
+	public async Task<IActionResult> RenewPassword([FromBody] RenewPasswordRequestDto dto)
+	{
+		var result = await _authService.RenewPasswordAsync(dto);
+		if (!result)
+			return BadRequest("Geçersiz doğrulama kodu.");
 
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(jwt);
-
-            return tokenString;
-        }
-
-        private string GenerateRefreshToken()
-        {
-            return Guid.NewGuid().ToString();
-        }
-    }
+		return Ok("Şifre başarıyla sıfırlandı.");
+	}
 }
