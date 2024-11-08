@@ -1,10 +1,27 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DataAPI.Data.Entities;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace DataAPI.Data
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options)
-            : base(options) { }
-    }
+		public DbSet<AboutMe> AboutMe { get; set; }
+		public DbSet<BlogPost> BlogPosts { get; set; }
+		public DbSet<Comment> Comments { get; set; }
+		public DbSet<ContactMessage> ContactMessages { get; set; }
+		public DbSet<Education> Educations { get; set; }
+		public DbSet<Experience> Experiences { get; set; }
+		public DbSet<PersonalInfo> PersonalInfos { get; set; }
+		public DbSet<Project> Projects { get; set; }
+		public DbSet<Skill> Skills { get; set; }
+
+		public AppDbContext(DbContextOptions<AppDbContext> options)
+			: base(options) { }
+
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
+		{
+			modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+		}
+	}
 }
