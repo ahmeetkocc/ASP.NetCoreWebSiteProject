@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DataAPI.DTOs.PersonalDetail;
+namespace DataAPI.DTOs.PersonalInfo;
 
-public class UpdatePersonalDetailDto
+public class UpdatePersonalInfoDto
 {
 
     [Required]
