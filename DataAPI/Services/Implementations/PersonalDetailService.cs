@@ -1,8 +1,8 @@
 ﻿using DataAPI.Data;
-using DataAPI.DTOs.PersonalInfo;
 using DataAPI.Data.Entities;
 using DataAPI.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using DataAPI.DTOs.PersonalInfo;
 
 namespace DataAPI.Services.Implementations;
 
