@@ -1,52 +1,24 @@
-using DataAPI.Services.Implementations;
-using DataAPI.Services.Interfaces;
+using DataAPI.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services to the container using the extension method
+builder.Services.AddApplicationServices();
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddScoped<IAboutMeService, AboutMeService>();
-builder.Services.AddScoped<IBlogPostService, BlogPostService>();
-builder.Services.AddScoped<ICommentService, CommentService>();
-builder.Services.AddScoped<IContactMessageService, ContactMessageService>();
-builder.Services.AddScoped<IEducationService, EducationService>();
-builder.Services.AddScoped<IExperienceService, ExperienceService>();
-builder.Services.AddScoped<IPersonalInfoService, PersonalInfoService>();
-builder.Services.AddScoped<IProjectService, ProjectService>();
-builder.Services.AddScoped<ISkillService, SkillService>();
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowSpecificOrigin",
-        builder =>
-        {
-            builder.AllowAnyMethod()
-                   .AllowAnyHeader()
-                   .AllowCredentials();
-        });
-});
 var app = builder.Build();
+
+// Use CORS with the specified policy name
+app.UseCors("AllowSpecificOrigin");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 
-app.UseCors();
-
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
-
-//Commit checker control v2.
