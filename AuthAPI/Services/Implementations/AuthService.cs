@@ -284,10 +284,11 @@ public class AuthService : IAuthService
 
 	private async Task SendResetPasswordEmailAsync(User user)
 	{
-		const string host = "smtp.gmail.com";
-		const int port = 587;
-		const string from = "denemebackend105@gmail.com";
-		const string password = "boyc tvfg jkgp thpk";
+		var smtpSettings = _configuration.GetSection("SmtpSettings");
+		var host = smtpSettings["Host"];
+		var port = int.Parse(smtpSettings["Port"]);
+		var from = smtpSettings["From"];
+		var password = smtpSettings["Password"];
 
 		using SmtpClient client = new(host, port)
 		{
