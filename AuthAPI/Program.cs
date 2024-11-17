@@ -1,4 +1,4 @@
-using AuthAPI.Data;
+using Data.AuthContext;
 using AuthAPI.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);

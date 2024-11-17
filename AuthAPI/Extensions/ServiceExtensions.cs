@@ -1,4 +1,4 @@
-﻿using AuthAPI.Data;
+﻿using Data.AuthContext;
 using AuthAPI.Services.Implementations;
 using AuthAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

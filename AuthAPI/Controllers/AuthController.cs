@@ -1,5 +1,5 @@
-﻿using AuthAPI.Data;
-using AuthAPI.Entities;
+﻿using Data.AuthContext;
+using Data.AuthEntities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
