@@ -1,5 +1,4 @@
 ﻿using AuthAPI.Dtos;
-using AuthAPI.Entities;
 using AuthAPI.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -7,9 +6,10 @@ using System.Net.Mail;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
-using AuthAPI.Data;
+using Data.AuthContext;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
+using Data.AuthEntities;
 
 namespace AuthAPI.Services.Implementations;
 
