@@ -1,5 +1,5 @@
-﻿using DataAPI.Data;
-using DataAPI.Data.Entities;
+﻿using Data.DataEntities;
+using Data.DataContext;
 using DataAPI.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using DataAPI.DTOs.PersonalInfo;

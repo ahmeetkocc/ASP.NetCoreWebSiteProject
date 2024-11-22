@@ -1,6 +1,6 @@
-﻿using DataAPI.Data;
+﻿using Data.DataEntities;
+using Data.DataContext;
 using DataAPI.DTOs.ContactMessage;
-using DataAPI.Data.Entities;
 using DataAPI.Services.Interfaces;
 
 namespace DataAPI.Services.Implementations;
