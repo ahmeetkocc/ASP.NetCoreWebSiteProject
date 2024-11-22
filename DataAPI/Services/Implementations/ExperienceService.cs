@@ -1,7 +1,6 @@
-﻿using DataAPI.Data;
-using DataAPI.DTOs.BlogPost;
+﻿using Data.DataEntities;
+using Data.DataContext;
 using DataAPI.DTOs.Experience;
-using DataAPI.Data.Entities;
 using DataAPI.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 

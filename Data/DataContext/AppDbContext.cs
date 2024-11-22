@@ -1,11 +1,11 @@
-﻿using DataAPI.Data.Entities;
+﻿using Data.DataEntities;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
-namespace DataAPI.Data
+namespace Data.DataContext
 {
-    public class AppDbContext : DbContext
-    {
+	public class AppDbContext : DbContext
+	{
 		public DbSet<AboutMe> AboutMe { get; set; }
 		public DbSet<BlogPost> BlogPosts { get; set; }
 		public DbSet<Comment> Comments { get; set; }
