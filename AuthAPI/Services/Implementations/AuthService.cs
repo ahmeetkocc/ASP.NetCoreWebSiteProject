@@ -9,7 +9,7 @@ using System.Text;
 using Data.AuthContext;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
-using Data.AuthEntities;
+using Core.Entities;
 
 namespace AuthAPI.Services.Implementations;
 

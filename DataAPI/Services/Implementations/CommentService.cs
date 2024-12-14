@@ -1,6 +1,6 @@
 ﻿using Data.DataContext;
 using DataAPI.DTOs.Comment;
-using Data.DataEntities;
+using Core.Entities;
 using DataAPI.Services.Interfaces;
 
 namespace DataAPI.Services.Implementations;

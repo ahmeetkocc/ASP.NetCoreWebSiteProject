@@ -1,4 +1,4 @@
-﻿using Data.DataEntities;
+﻿using Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
