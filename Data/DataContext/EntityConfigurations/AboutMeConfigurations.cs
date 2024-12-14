@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
-using Data.DataEntities;
+using Core.Entities;
 
 namespace Data.DataContext.EntityConfigurations;
 

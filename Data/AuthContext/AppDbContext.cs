@@ -1,6 +1,6 @@
 ﻿using Data.AuthContext.EntityConfigurations;
 using Microsoft.EntityFrameworkCore;
-using Data.AuthEntities;
+using Core.Entities;
 
 namespace Data.AuthContext
 {

@@ -1,4 +1,4 @@
-﻿using Data.DataEntities;
+﻿using Core.Entities;
 using Data.DataContext;
 using DataAPI.DTOs.AboutMe;
 using DataAPI.Services.Interfaces;
