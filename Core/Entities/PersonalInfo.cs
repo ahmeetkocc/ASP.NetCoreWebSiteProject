@@ -1,8 +1,7 @@
 ﻿namespace Core.Entities;
 
-public class PersonalInfo
+public class PersonalInfo : BaseEntity
 {
-    public int Id { get; set; }
     public string About { get; set; }
     public string Name { get; set; }
     public string Surname { get; set; }

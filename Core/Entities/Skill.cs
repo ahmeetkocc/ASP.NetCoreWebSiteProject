@@ -2,11 +2,8 @@
 
 namespace Core.Entities;
 
-public class Skill
+public class Skill : BaseEntity
 {
-    [Required]
-    public int Id { get; set; }
-
     [Required]
     public string Name { get; set; }
 }
