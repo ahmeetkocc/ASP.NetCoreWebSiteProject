@@ -1,8 +1,7 @@
 ﻿namespace Core.Entities;
 
-public class Education
+public class Education : BaseEntity
 {
-    public int Id { get; set; }
     public int UserId { get; set; }
     public string Degree { get; set; }
     public string School { get; set; }
